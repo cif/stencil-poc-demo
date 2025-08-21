@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import './App.css';
 import { useQuery, gql } from '@apollo/client';
 import { WidgetDetail } from './WidgetDetail';
+import { Categories } from './Categories';
 
 const GET_WIDGETS = gql`
   query GetWidgets($limit: Int!, $offset: Int!) {
@@ -10,7 +12,10 @@ const GET_WIDGETS = gql`
       name
       description
       price
-      category
+      category {
+        id
+        name
+      }
       in_stock
       created_at
     }
@@ -25,12 +30,17 @@ const GET_WIDGETS = gql`
   }
 `;
 
+interface Category {
+  id: number;
+  name: string;
+}
+
 interface Widget {
   id: number;
   name: string;
   description: string;
   price: number;
-  category: string;
+  category: Category;
   in_stock: boolean;
   created_at: string;
 }
@@ -47,7 +57,60 @@ interface WidgetsResponse {
   };
 }
 
-function App() {
+// Navigation component
+const Navigation: React.FC = () => {
+  const location = useLocation();
+  
+  return (
+    <nav style={{
+      backgroundColor: '#343a40',
+      padding: '0',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center' }}>
+        <Link 
+          to="/"
+          style={{ 
+            color: 'white', 
+            textDecoration: 'none',
+            padding: '15px 20px',
+            fontWeight: 'bold',
+            fontSize: '18px'
+          }}
+        >
+          🔧 Widget Store
+        </Link>
+        <div style={{ display: 'flex' }}>
+          <Link
+            to="/"
+            style={{
+              color: location.pathname === '/' ? '#007bff' : 'white',
+              textDecoration: 'none',
+              padding: '15px 20px',
+              borderBottom: location.pathname === '/' ? '3px solid #007bff' : 'none'
+            }}
+          >
+            All Widgets
+          </Link>
+          <Link
+            to="/categories"
+            style={{
+              color: location.pathname === '/categories' ? '#007bff' : 'white',
+              textDecoration: 'none',
+              padding: '15px 20px',
+              borderBottom: location.pathname === '/categories' ? '3px solid #007bff' : 'none'
+            }}
+          >
+            Categories
+          </Link>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+// Widgets List Component
+const WidgetsList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedWidget, setSelectedWidget] = useState<Widget | null>(null);
   const pageSize = 50;
@@ -57,8 +120,8 @@ function App() {
     variables: { limit: pageSize, offset },
   });
 
-  if (loading) return <p>Loading widgets...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (loading) return <p style={{ padding: '20px' }}>Loading widgets...</p>;
+  if (error) return <p style={{ padding: '20px' }}>Error: {error.message}</p>;
 
   const totalCount = data?.widgets_aggregate.aggregate.count || 0;
   const avgPrice = data?.widgets_aggregate.aggregate.avg?.price || 0;
@@ -71,10 +134,10 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <div>
       <header className="App-header">
         <div>
-          <h1>Widget Store</h1>
+          <h1>All Widgets</h1>
           <p style={{ margin: '5px 0', fontSize: '14px', opacity: 0.9 }}>
             Showing {startRecord}-{endRecord} of {totalCount.toLocaleString()} widgets
           </p>
@@ -217,7 +280,7 @@ function App() {
                     color: '#1976d2',
                     fontSize: '12px'
                   }}>
-                    {widget.category}
+                    {widget.category.name}
                   </span>
                 </td>
                 <td style={{ padding: '12px' }}>
@@ -248,6 +311,20 @@ function App() {
         />
       )}
     </div>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <div className="App">
+        <Navigation />
+        <Routes>
+          <Route path="/" element={<WidgetsList />} />
+          <Route path="/categories" element={<Categories />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

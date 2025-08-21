@@ -23,19 +23,27 @@ const GET_SINGLE_WIDGET = gql`
       name
       description
       price
-      category
+      category {
+        id
+        name
+      }
       in_stock
       created_at
     }
   }
 `;
 
+interface Category {
+  id: number;
+  name: string;
+}
+
 interface Widget {
   id: number;
   name: string;
   description: string;
   price: number;
-  category: string;
+  category: Category;
   in_stock: boolean;
   created_at: string;
 }
@@ -148,7 +156,7 @@ export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) =
 
         <div style={{ marginBottom: '20px' }}>
           <p style={{ color: '#666', fontSize: '14px', margin: '0 0 10px 0' }}>
-            ID: {currentWidget.id} | Category: {currentWidget.category}
+            ID: {currentWidget.id} | Category: {currentWidget.category.name}
           </p>
           <p style={{ color: '#666', lineHeight: '1.6' }}>{currentWidget.description}</p>
         </div>
