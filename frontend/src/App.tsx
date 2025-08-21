@@ -17,6 +17,9 @@ const GET_WIDGETS = gql`
     widgets_aggregate {
       aggregate {
         count
+        avg {
+          price
+        }
       }
     }
   }
@@ -37,6 +40,9 @@ interface WidgetsResponse {
   widgets_aggregate: {
     aggregate: {
       count: number;
+      avg: {
+        price: number;
+      };
     };
   };
 }
@@ -55,6 +61,7 @@ function App() {
   if (error) return <p>Error: {error.message}</p>;
 
   const totalCount = data?.widgets_aggregate.aggregate.count || 0;
+  const avgPrice = data?.widgets_aggregate.aggregate.avg?.price || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
   const startRecord = offset + 1;
   const endRecord = Math.min(offset + pageSize, totalCount);
@@ -110,6 +117,52 @@ function App() {
           </div>
         </div>
       </header>
+
+      <div style={{ 
+        backgroundColor: '#f8f9fa', 
+        padding: '20px', 
+        borderBottom: '1px solid #e9ecef',
+        textAlign: 'center' 
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <h3 style={{ margin: '0 0 10px 0', color: '#495057' }}>
+            📊 Widget Analytics
+          </h3>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: '40px',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ 
+              backgroundColor: 'white', 
+              padding: '16px 24px', 
+              borderRadius: '8px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2e7d32' }}>
+                ${avgPrice.toFixed(2)}
+              </div>
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                Average Price
+              </div>
+            </div>
+            <div style={{ 
+              backgroundColor: 'white', 
+              padding: '16px 24px', 
+              borderRadius: '8px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1976d2' }}>
+                {totalCount.toLocaleString()}
+              </div>
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                Total Widgets
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       
       <main style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
         <table style={{ 

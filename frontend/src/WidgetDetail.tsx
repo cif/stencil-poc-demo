@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useMutation, gql } from '@apollo/client';
+import { useApolloClient, useQuery, gql } from '@apollo/client';
+import { useOptimisticMutation } from './hooks/useOptimisticMutation';
 
 const UPDATE_WIDGET_PRICE = gql`
   mutation UpdateWidgetPrice($id: Int!, $price: numeric!) {
@@ -8,6 +9,20 @@ const UPDATE_WIDGET_PRICE = gql`
       name
       price
       description
+      category
+      in_stock
+      created_at
+    }
+  }
+`;
+
+const GET_SINGLE_WIDGET = gql`
+  query GetSingleWidget($id: Int!) {
+    widgets_by_pk(id: $id) {
+      id
+      name
+      description
+      price
       category
       in_stock
       created_at
@@ -31,60 +46,21 @@ interface WidgetDetailProps {
 }
 
 export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) => {
-  const [newPrice, setNewPrice] = useState(widget.price.toString());
+  // Get fresh widget data from cache
+  const { data: freshWidget } = useQuery(GET_SINGLE_WIDGET, {
+    variables: { id: widget.id },
+    fetchPolicy: 'cache-first'
+  });
+  
+  const currentWidget = freshWidget?.widgets_by_pk || widget;
+  const [newPrice, setNewPrice] = useState(currentWidget.price.toString());
   const [isEditing, setIsEditing] = useState(false);
+  const client = useApolloClient();
 
-  const [updateWidgetPrice, { loading: updating }] = useMutation(UPDATE_WIDGET_PRICE, {
-    optimisticResponse: {
-      update_widgets_by_pk: {
-        __typename: 'widgets',
-        id: widget.id,
-        name: widget.name,
-        price: parseFloat(newPrice),
-        description: widget.description,
-        category: widget.category,
-        in_stock: widget.in_stock,
-        created_at: widget.created_at,
-      },
-    },
-    update: (cache, { data }) => {
-      if (data?.update_widgets_by_pk) {
-        // Update all cached queries that contain this widget
-        cache.modify({
-          fields: {
-            widgets(existingWidgets = [], { readField }) {
-              return existingWidgets.map((widgetRef: any) => {
-                if (readField('id', widgetRef) === widget.id) {
-                  // Update the widget in the list cache
-                  cache.writeFragment({
-                    id: cache.identify(widgetRef),
-                    fragment: gql`
-                      fragment UpdatedWidget on widgets {
-                        id
-                        price
-                      }
-                    `,
-                    data: {
-                      id: widget.id,
-                      price: data.update_widgets_by_pk.price,
-                    },
-                  });
-                }
-                return widgetRef;
-              });
-            },
-          },
-        });
-      }
-    },
-    onCompleted: () => {
-      setIsEditing(false);
-    },
-    onError: (error) => {
-      alert(`Failed to update price: ${error.message}`);
-      setNewPrice(widget.price.toString());
-      setIsEditing(false);
-    },
+  const [updateWidgetPrice, { loading: updating }] = useOptimisticMutation({
+    mutation: UPDATE_WIDGET_PRICE,
+    typename: 'widgets',
+    updateFields: ['price']
   });
 
   const handleSavePrice = async () => {
@@ -96,18 +72,29 @@ export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) =
 
     try {
       await updateWidgetPrice({
-        variables: {
-          id: widget.id,
-          price: price,
-        },
+        variables: { id: currentWidget.id, price },
+        onCompleted: () => setIsEditing(false),
+        onError: (error: any) => {
+          alert(`Failed to update price: ${error.message}`);
+          setNewPrice(currentWidget.price.toString());
+          setIsEditing(false);
+        }
       });
     } catch (error) {
       console.error('Error updating price:', error);
     }
   };
 
+  const invalidateWidget = () => {
+    client.query({
+      query: GET_SINGLE_WIDGET,
+      variables: { id: currentWidget.id },
+      fetchPolicy: 'network-only'
+    });
+  };
+
   const handleCancel = () => {
-    setNewPrice(widget.price.toString());
+    setNewPrice(currentWidget.price.toString());
     setIsEditing(false);
   };
 
@@ -141,7 +128,7 @@ export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) =
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0, color: '#333' }}>{widget.name}</h2>
+          <h2 style={{ margin: 0, color: '#333' }}>{currentWidget.name}</h2>
           <button
             onClick={onClose}
             style={{
@@ -161,9 +148,9 @@ export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) =
 
         <div style={{ marginBottom: '20px' }}>
           <p style={{ color: '#666', fontSize: '14px', margin: '0 0 10px 0' }}>
-            ID: {widget.id} | Category: {widget.category}
+            ID: {currentWidget.id} | Category: {currentWidget.category}
           </p>
-          <p style={{ color: '#666', lineHeight: '1.6' }}>{widget.description}</p>
+          <p style={{ color: '#666', lineHeight: '1.6' }}>{currentWidget.description}</p>
         </div>
 
         <div style={{ backgroundColor: '#f9f9f9', padding: '16px', borderRadius: '8px', marginBottom: '20px' }}>
@@ -191,7 +178,7 @@ export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) =
                 </div>
               ) : (
                 <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#2e7d32' }}>
-                  ${widget.price}
+                  ${currentWidget.price}
                 </span>
               )}
             </div>
@@ -247,6 +234,22 @@ export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) =
               )}
             </div>
           </div>
+          
+          <button
+            onClick={invalidateWidget}
+            style={{
+              backgroundColor: '#ff6b35',
+              color: 'white',
+              border: 'none',
+              padding: '6px 12px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              marginTop: '8px',
+            }}
+          >
+            🔄 Invalidate Cache
+          </button>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -254,16 +257,16 @@ export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) =
             style={{
               padding: '6px 12px',
               borderRadius: '6px',
-              backgroundColor: widget.in_stock ? '#e8f5e8' : '#ffebee',
-              color: widget.in_stock ? '#2e7d32' : '#c62828',
+              backgroundColor: currentWidget.in_stock ? '#e8f5e8' : '#ffebee',
+              color: currentWidget.in_stock ? '#2e7d32' : '#c62828',
               fontSize: '14px',
               fontWeight: 'bold',
             }}
           >
-            {widget.in_stock ? 'In Stock' : 'Out of Stock'}
+            {currentWidget.in_stock ? 'In Stock' : 'Out of Stock'}
           </span>
           <span style={{ fontSize: '12px', color: '#666' }}>
-            Created: {new Date(widget.created_at).toLocaleDateString()}
+            Created: {new Date(currentWidget.created_at).toLocaleDateString()}
           </span>
         </div>
       </div>
