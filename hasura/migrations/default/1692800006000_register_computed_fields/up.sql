@@ -1,0 +1,2 @@
+-- Register computed fields in Hasura metadata
+-- This would normally be done through the Hasura console, but we can simulate it with direct API calls

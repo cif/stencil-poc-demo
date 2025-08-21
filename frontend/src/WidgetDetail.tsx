@@ -1,52 +1,5 @@
 import React, { useState } from 'react';
-import { useApolloClient, useQuery, gql } from '@apollo/client';
-import { useOptimisticMutation } from './hooks/useOptimisticMutation';
-
-const UPDATE_WIDGET_PRICE = gql`
-  mutation UpdateWidgetPrice($id: Int!, $price: numeric!) {
-    update_widgets_by_pk(pk_columns: { id: $id }, _set: { price: $price }) {
-      id
-      name
-      price
-      description
-      category
-      in_stock
-      created_at
-    }
-  }
-`;
-
-const GET_SINGLE_WIDGET = gql`
-  query GetSingleWidget($id: Int!) {
-    widgets_by_pk(id: $id) {
-      id
-      name
-      description
-      price
-      category {
-        id
-        name
-      }
-      in_stock
-      created_at
-    }
-  }
-`;
-
-interface Category {
-  id: number;
-  name: string;
-}
-
-interface Widget {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  category: Category;
-  in_stock: boolean;
-  created_at: string;
-}
+import { Widget, useSingleWidget, useWidgetPriceUpdate, useCacheInvalidation } from './client-logic';
 
 interface WidgetDetailProps {
   widget: Widget;
@@ -55,21 +8,14 @@ interface WidgetDetailProps {
 
 export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) => {
   // Get fresh widget data from cache
-  const { data: freshWidget } = useQuery(GET_SINGLE_WIDGET, {
-    variables: { id: widget.id },
-    fetchPolicy: 'cache-first'
-  });
+  const { data: freshWidget } = useSingleWidget(widget.id);
   
   const currentWidget = freshWidget?.widgets_by_pk || widget;
   const [newPrice, setNewPrice] = useState(currentWidget.price.toString());
   const [isEditing, setIsEditing] = useState(false);
-  const client = useApolloClient();
 
-  const [updateWidgetPrice, { loading: updating }] = useOptimisticMutation({
-    mutation: UPDATE_WIDGET_PRICE,
-    typename: 'widgets',
-    updateFields: ['price']
-  });
+  const { updatePrice, updating } = useWidgetPriceUpdate();
+  const { invalidateWidget } = useCacheInvalidation();
 
   const handleSavePrice = async () => {
     const price = parseFloat(newPrice);
@@ -78,26 +24,13 @@ export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) =
       return;
     }
 
-    try {
-      await updateWidgetPrice({
-        variables: { id: currentWidget.id, price },
-        onCompleted: () => setIsEditing(false),
-        onError: (error: any) => {
-          alert(`Failed to update price: ${error.message}`);
-          setNewPrice(currentWidget.price.toString());
-          setIsEditing(false);
-        }
-      });
-    } catch (error) {
-      console.error('Error updating price:', error);
-    }
-  };
-
-  const invalidateWidget = () => {
-    client.query({
-      query: GET_SINGLE_WIDGET,
-      variables: { id: currentWidget.id },
-      fetchPolicy: 'network-only'
+    await updatePrice(currentWidget.id, price, {
+      onCompleted: () => setIsEditing(false),
+      onError: (error: any) => {
+        alert(`Failed to update price: ${error.message}`);
+        setNewPrice(currentWidget.price.toString());
+        setIsEditing(false);
+      }
     });
   };
 
@@ -244,7 +177,7 @@ export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) =
           </div>
           
           <button
-            onClick={invalidateWidget}
+            onClick={() => invalidateWidget(currentWidget.id)}
             style={{
               backgroundColor: '#ff6b35',
               color: 'white',

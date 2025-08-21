@@ -1,117 +1,6 @@
 import React, { useState } from 'react';
-import { useQuery, gql } from '@apollo/client';
+import { Category, Widget, useCategories, useCategoryWidgets } from './client-logic';
 import { WidgetDetail } from './WidgetDetail';
-
-const GET_CATEGORIES = gql`
-  query GetCategories {
-    categories(order_by: { name: asc }) {
-      id
-      name
-      description
-      widgets_aggregate {
-        aggregate {
-          count
-          avg {
-            price
-          }
-        }
-      }
-    }
-  }
-`;
-
-const GET_ALL_WIDGETS = gql`
-  query GetAllWidgets($limit: Int!, $offset: Int!) {
-    widgets(limit: $limit, offset: $offset, order_by: { id: asc }) {
-      id
-      name
-      description
-      price
-      category {
-        id
-        name
-      }
-      in_stock
-      created_at
-    }
-    widgets_aggregate {
-      aggregate {
-        count
-        avg {
-          price
-        }
-      }
-    }
-  }
-`;
-
-const GET_FILTERED_WIDGETS = gql`
-  query GetFilteredWidgets($categoryId: Int!, $limit: Int!, $offset: Int!) {
-    widgets(where: { category_id: { _eq: $categoryId } }, limit: $limit, offset: $offset, order_by: { id: asc }) {
-      id
-      name
-      description
-      price
-      category {
-        id
-        name
-      }
-      in_stock
-      created_at
-    }
-    widgets_aggregate(where: { category_id: { _eq: $categoryId } }) {
-      aggregate {
-        count
-        avg {
-          price
-        }
-      }
-    }
-  }
-`;
-
-interface Category {
-  id: number;
-  name: string;
-  description: string;
-  widgets_aggregate: {
-    aggregate: {
-      count: number;
-      avg: {
-        price: number;
-      } | null;
-    };
-  };
-}
-
-interface Widget {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  category: {
-    id: number;
-    name: string;
-  };
-  in_stock: boolean;
-  created_at: string;
-}
-
-interface CategoriesResponse {
-  categories: Category[];
-}
-
-interface WidgetsResponse {
-  widgets: Widget[];
-  widgets_aggregate: {
-    aggregate: {
-      count: number;
-      avg: {
-        price: number;
-      } | null;
-    };
-  };
-}
 
 export const Categories: React.FC = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
@@ -120,16 +9,8 @@ export const Categories: React.FC = () => {
   const pageSize = 20;
   const offset = (currentPage - 1) * pageSize;
 
-  const { loading: categoriesLoading, error: categoriesError, data: categoriesData } = useQuery<CategoriesResponse>(GET_CATEGORIES);
-  
-  const { loading: widgetsLoading, error: widgetsError, data: widgetsData } = useQuery<WidgetsResponse>(
-    selectedCategoryId ? GET_FILTERED_WIDGETS : GET_ALL_WIDGETS,
-    {
-      variables: selectedCategoryId 
-        ? { categoryId: selectedCategoryId, limit: pageSize, offset }
-        : { limit: pageSize, offset },
-    }
-  );
+  const { loading: categoriesLoading, error: categoriesError, data: categoriesData } = useCategories();
+  const { loading: widgetsLoading, error: widgetsError, data: widgetsData } = useCategoryWidgets(selectedCategoryId, pageSize, currentPage);
 
   if (categoriesLoading || widgetsLoading) return <p>Loading...</p>;
   if (categoriesError) return <p>Error loading categories: {categoriesError.message}</p>;

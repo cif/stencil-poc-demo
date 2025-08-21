@@ -1,61 +1,11 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import './App.css';
-import { useQuery, gql } from '@apollo/client';
+import { Widget, useWidgetsList } from './client-logic';
 import { WidgetDetail } from './WidgetDetail';
 import { Categories } from './Categories';
-
-const GET_WIDGETS = gql`
-  query GetWidgets($limit: Int!, $offset: Int!) {
-    widgets(limit: $limit, offset: $offset, order_by: { id: asc }) {
-      id
-      name
-      description
-      price
-      category {
-        id
-        name
-      }
-      in_stock
-      created_at
-    }
-    widgets_aggregate {
-      aggregate {
-        count
-        avg {
-          price
-        }
-      }
-    }
-  }
-`;
-
-interface Category {
-  id: number;
-  name: string;
-}
-
-interface Widget {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  category: Category;
-  in_stock: boolean;
-  created_at: string;
-}
-
-interface WidgetsResponse {
-  widgets: Widget[];
-  widgets_aggregate: {
-    aggregate: {
-      count: number;
-      avg: {
-        price: number;
-      };
-    };
-  };
-}
+import { Budget } from './Budget';
+import { ComputedFieldsDemo } from './ComputedFieldsDemo';
 
 // Navigation component
 const Navigation: React.FC = () => {
@@ -103,6 +53,28 @@ const Navigation: React.FC = () => {
           >
             Categories
           </Link>
+          <Link
+            to="/budget"
+            style={{
+              color: location.pathname === '/budget' ? '#007bff' : 'white',
+              textDecoration: 'none',
+              padding: '15px 20px',
+              borderBottom: location.pathname === '/budget' ? '3px solid #007bff' : 'none'
+            }}
+          >
+            💰 My Budget
+          </Link>
+          <Link
+            to="/computed-fields"
+            style={{
+              color: location.pathname === '/computed-fields' ? '#007bff' : 'white',
+              textDecoration: 'none',
+              padding: '15px 20px',
+              borderBottom: location.pathname === '/computed-fields' ? '3px solid #007bff' : 'none'
+            }}
+          >
+            🧮 Computed Fields
+          </Link>
         </div>
       </div>
     </nav>
@@ -116,9 +88,7 @@ const WidgetsList: React.FC = () => {
   const pageSize = 50;
   const offset = (currentPage - 1) * pageSize;
 
-  const { loading, error, data, refetch } = useQuery<WidgetsResponse>(GET_WIDGETS, {
-    variables: { limit: pageSize, offset },
-  });
+  const { loading, error, data, refetch } = useWidgetsList(pageSize, currentPage);
 
   if (loading) return <p style={{ padding: '20px' }}>Loading widgets...</p>;
   if (error) return <p style={{ padding: '20px' }}>Error: {error.message}</p>;
@@ -135,14 +105,20 @@ const WidgetsList: React.FC = () => {
 
   return (
     <div>
-      <header className="App-header">
-        <div>
-          <h1>All Widgets</h1>
-          <p style={{ margin: '5px 0', fontSize: '14px', opacity: 0.9 }}>
-            Showing {startRecord}-{endRecord} of {totalCount.toLocaleString()} widgets
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+      <header style={{ 
+        backgroundColor: '#282c34', 
+        padding: '20px 0', 
+        color: 'white',
+        marginBottom: '0'
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ textAlign: 'left' }}>
+            <h1 style={{ margin: '0 0 5px 0' }}>All Widgets</h1>
+            <p style={{ margin: '5px 0', fontSize: '14px', opacity: 0.9 }}>
+              Showing {startRecord}-{endRecord} of {totalCount.toLocaleString()} widgets
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button 
             onClick={() => refetch()}
             style={{ padding: '8px 16px', fontSize: '14px' }}
@@ -179,72 +155,63 @@ const WidgetsList: React.FC = () => {
             </button>
           </div>
         </div>
+        </div>
       </header>
 
-      <div style={{ 
-        backgroundColor: '#f8f9fa', 
-        padding: '20px', 
-        borderBottom: '1px solid #e9ecef',
-        textAlign: 'center' 
-      }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <h3 style={{ margin: '0 0 10px 0', color: '#495057' }}>
-            📊 Widget Analytics
-          </h3>
+      <main style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'flex-end', 
+          gap: '20px',
+          marginBottom: '20px'
+        }}>
           <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            gap: '40px',
-            flexWrap: 'wrap'
+            backgroundColor: 'white', 
+            padding: '12px 20px', 
+            borderRadius: '8px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            border: '1px solid #e9ecef'
           }}>
-            <div style={{ 
-              backgroundColor: 'white', 
-              padding: '16px 24px', 
-              borderRadius: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2e7d32' }}>
-                ${avgPrice.toFixed(2)}
-              </div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                Average Price
-              </div>
+            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#2e7d32' }}>
+              ${avgPrice.toFixed(2)}
             </div>
-            <div style={{ 
-              backgroundColor: 'white', 
-              padding: '16px 24px', 
-              borderRadius: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1976d2' }}>
-                {totalCount.toLocaleString()}
-              </div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                Total Widgets
-              </div>
+            <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>
+              Average Price
+            </div>
+          </div>
+          <div style={{ 
+            backgroundColor: 'white', 
+            padding: '12px 20px', 
+            borderRadius: '8px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            border: '1px solid #e9ecef'
+          }}>
+            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#1976d2' }}>
+              {totalCount.toLocaleString()}
+            </div>
+            <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>
+              Total Widgets
             </div>
           </div>
         </div>
-      </div>
-      
-      <main style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
         <table style={{ 
           width: '100%', 
           borderCollapse: 'collapse',
           backgroundColor: 'white',
           borderRadius: '8px',
           overflow: 'hidden',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          fontSize: '14px'
         }}>
           <thead>
             <tr style={{ backgroundColor: '#f5f5f5' }}>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>ID</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Name</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Description</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Price</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Category</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Stock</th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Created</th>
+              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd', fontSize: '13px', fontWeight: '600' }}>ID</th>
+              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd', fontSize: '13px', fontWeight: '600' }}>Name</th>
+              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd', fontSize: '13px', fontWeight: '600' }}>Description</th>
+              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd', fontSize: '13px', fontWeight: '600' }}>Price</th>
+              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd', fontSize: '13px', fontWeight: '600' }}>Category</th>
+              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd', fontSize: '13px', fontWeight: '600' }}>Stock</th>
+              <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #ddd', fontSize: '13px', fontWeight: '600' }}>Created</th>
             </tr>
           </thead>
           <tbody>
@@ -264,38 +231,46 @@ const WidgetsList: React.FC = () => {
                   e.currentTarget.style.backgroundColor = index % 2 === 0 ? 'white' : '#f9f9f9';
                 }}
               >
-                <td style={{ padding: '12px' }}>{widget.id}</td>
-                <td style={{ padding: '12px', fontWeight: 'bold' }}>{widget.name}</td>
-                <td style={{ padding: '12px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <td style={{ padding: '10px', textAlign: 'left', fontSize: '13px', color: '#666' }}>{widget.id}</td>
+                <td style={{ padding: '10px', textAlign: 'left', fontSize: '14px', fontWeight: '500' }}>{widget.name}</td>
+                <td style={{ 
+                  padding: '10px', 
+                  textAlign: 'left', 
+                  fontSize: '13px', 
+                  maxWidth: '150px', 
+                  overflow: 'hidden', 
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}>
                   {widget.description}
                 </td>
-                <td style={{ padding: '12px', fontWeight: 'bold', color: '#2e7d32' }}>
+                <td style={{ padding: '10px', textAlign: 'left', fontSize: '14px', fontWeight: '500', color: '#2e7d32' }}>
                   ${widget.price}
                 </td>
-                <td style={{ padding: '12px' }}>
+                <td style={{ padding: '10px', textAlign: 'left' }}>
                   <span style={{
-                    padding: '4px 8px',
+                    padding: '3px 7px',
                     borderRadius: '4px',
                     backgroundColor: '#e3f2fd',
                     color: '#1976d2',
-                    fontSize: '12px'
+                    fontSize: '11px'
                   }}>
                     {widget.category.name}
                   </span>
                 </td>
-                <td style={{ padding: '12px' }}>
+                <td style={{ padding: '10px', textAlign: 'left' }}>
                   <span style={{
-                    padding: '4px 8px',
+                    padding: '3px 7px',
                     borderRadius: '4px',
                     backgroundColor: widget.in_stock ? '#e8f5e8' : '#ffebee',
                     color: widget.in_stock ? '#2e7d32' : '#c62828',
-                    fontSize: '12px',
-                    fontWeight: 'bold'
+                    fontSize: '11px',
+                    fontWeight: '500'
                   }}>
                     {widget.in_stock ? 'In Stock' : 'Out of Stock'}
                   </span>
                 </td>
-                <td style={{ padding: '12px', fontSize: '12px', color: '#666' }}>
+                <td style={{ padding: '10px', textAlign: 'left', fontSize: '11px', color: '#666' }}>
                   {new Date(widget.created_at).toLocaleDateString()}
                 </td>
               </tr>
@@ -322,6 +297,8 @@ function App() {
         <Routes>
           <Route path="/" element={<WidgetsList />} />
           <Route path="/categories" element={<Categories />} />
+          <Route path="/budget" element={<Budget />} />
+          <Route path="/computed-fields" element={<ComputedFieldsDemo />} />
         </Routes>
       </div>
     </Router>
