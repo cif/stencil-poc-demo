@@ -308,7 +308,7 @@ class StencilGraphQL {
         }
       });
       
-      loopQueries += `    ${loop.arrayName}(limit: ${loop.limit}, offset: ${this.currentOffset}) {
+      loopQueries += `    ${loop.arrayName}(limit: ${loop.limit}, offset: ${this.currentOffset}, order_by: {id: asc}) {
 ${fieldList}    }
 `;
       
