@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { useQuery } from '@apollo/client';
 import './App.css';
-import { Widget, useWidgetsList } from './client-logic';
+import { Widget, WidgetsResponse, GET_WIDGETS } from './client-logic';
 import { WidgetDetail } from './WidgetDetail';
 import { Categories } from './Categories';
 import { Budget } from './Budget';
@@ -88,7 +89,9 @@ const WidgetsList: React.FC = () => {
   const pageSize = 50;
   const offset = (currentPage - 1) * pageSize;
 
-  const { loading, error, data, refetch } = useWidgetsList(pageSize, currentPage);
+  const { loading, error, data, refetch } = useQuery<WidgetsResponse>(GET_WIDGETS, {
+    variables: { limit: pageSize, offset },
+  });
 
   if (loading) return <p style={{ padding: '20px' }}>Loading widgets...</p>;
   if (error) return <p style={{ padding: '20px' }}>Error: {error.message}</p>;

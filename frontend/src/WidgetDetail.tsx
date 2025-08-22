@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Widget, useSingleWidget, useWidgetPriceUpdate, useCacheInvalidation } from './client-logic';
+import { useQuery, useApolloClient } from '@apollo/client';
+import { Widget, GET_SINGLE_WIDGET, useOptimisticMutation, UPDATE_WIDGET_PRICE, useCacheInvalidation } from './client-logic';
 
 interface WidgetDetailProps {
   widget: Widget;
@@ -8,13 +9,22 @@ interface WidgetDetailProps {
 
 export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) => {
   // Get fresh widget data from cache
-  const { data: freshWidget } = useSingleWidget(widget.id);
+  const { data: freshWidget } = useQuery(GET_SINGLE_WIDGET, {
+    variables: { id: widget.id },
+    fetchPolicy: 'cache-first'
+  });
   
   const currentWidget = freshWidget?.widgets_by_pk || widget;
   const [newPrice, setNewPrice] = useState(currentWidget.price.toString());
   const [isEditing, setIsEditing] = useState(false);
 
-  const { updatePrice, updating } = useWidgetPriceUpdate();
+  const client = useApolloClient();
+
+  const [updateWidgetPrice, { loading: updating }] = useOptimisticMutation({
+    mutation: UPDATE_WIDGET_PRICE,
+    typename: 'widgets',
+    updateFields: ['price']
+  });
   const { invalidateWidget } = useCacheInvalidation();
 
   const handleSavePrice = async () => {
@@ -24,14 +34,29 @@ export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) =
       return;
     }
 
-    await updatePrice(currentWidget.id, price, {
-      onCompleted: () => setIsEditing(false),
-      onError: (error: any) => {
-        alert(`Failed to update price: ${error.message}`);
-        setNewPrice(currentWidget.price.toString());
-        setIsEditing(false);
-      }
-    });
+    try {
+      await updateWidgetPrice({
+        variables: { id: currentWidget.id, price },
+        onCompleted: () => setIsEditing(false),
+        onError: (error: any) => {
+          alert(`Failed to update price: ${error.message}`);
+          setNewPrice(currentWidget.price.toString());
+          setIsEditing(false);
+        }
+      });
+
+      // Refresh the specific widget data
+      await client.query({
+        query: GET_SINGLE_WIDGET,
+        variables: { id: currentWidget.id },
+        fetchPolicy: 'network-only'
+      });
+    } catch (error) {
+      console.error('Error updating price:', error);
+      alert(`Failed to update price: ${error}`);
+      setNewPrice(currentWidget.price.toString());
+      setIsEditing(false);
+    }
   };
 
   const handleCancel = () => {
@@ -177,7 +202,10 @@ export const WidgetDetail: React.FC<WidgetDetailProps> = ({ widget, onClose }) =
           </div>
           
           <button
-            onClick={() => invalidateWidget(currentWidget.id)}
+            onClick={async () => {
+              await invalidateWidget(currentWidget.id);
+              alert('Cache invalidated and fresh data loaded!');
+            }}
             style={{
               backgroundColor: '#ff6b35',
               color: 'white',

@@ -79,20 +79,20 @@ export const ComputedFieldsDemo: React.FC = () => {
 
         {/* Server-Side Computed Fields */}
         <div>
-          <h2>🏢 Server-Side Computed Fields</h2>
-          <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
+          <h2 style={{ textAlign: 'left' }}>🏢 Server-Side Computed Fields</h2>
+          <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px', textAlign: 'left' }}>
             Computed in PostgreSQL functions, exposed via Hasura
           </p>
-          <div style={{ backgroundColor: '#fff3cd', padding: '15px', borderRadius: '8px' }}>
-            <h4>Advantages:</h4>
-            <ul style={{ fontSize: '13px', color: '#666' }}>
+          <div style={{ backgroundColor: '#fff3cd', padding: '15px', borderRadius: '8px', textAlign: 'left' }}>
+            <h4 style={{ textAlign: 'left', margin: '0 0 8px 0' }}>Advantages:</h4>
+            <ul style={{ fontSize: '13px', color: '#666', margin: '0 0 15px 0', paddingLeft: '20px', textAlign: 'left' }}>
               <li>Computed once in database</li>
               <li>Can be used in queries, filters & sorts</li>
               <li>Consistent across all clients</li>
               <li>Can access all database functions</li>
             </ul>
-            <h4>Disadvantages:</h4>
-            <ul style={{ fontSize: '13px', color: '#666' }}>
+            <h4 style={{ textAlign: 'left', margin: '0 0 8px 0' }}>Disadvantages:</h4>
+            <ul style={{ fontSize: '13px', color: '#666', margin: '0', paddingLeft: '20px', textAlign: 'left' }}>
               <li>Requires server round-trip</li>
               <li>Adds database load</li>
               <li>No access to client state</li>
@@ -120,11 +120,11 @@ export const ComputedFieldsDemo: React.FC = () => {
 
       {/* Code Examples */}
       <div style={{ marginTop: '40px' }}>
-        <h2>💻 Code Examples</h2>
+        <h2 style={{ textAlign: 'left' }}>💻 Code Examples</h2>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           <div>
-            <h3>Client-Side (Apollo Field Policies)</h3>
+            <h3 style={{ textAlign: 'left' }}>Client-Side (Apollo Field Policies)</h3>
             <pre style={{ 
               backgroundColor: '#f8f9fa', 
               padding: '15px', 
@@ -149,7 +149,7 @@ export const typePolicies = {
           </div>
 
           <div>
-            <h3>Server-Side (PostgreSQL Function)</h3>
+            <h3 style={{ textAlign: 'left' }}>Server-Side (PostgreSQL Function)</h3>
             <pre style={{ 
               backgroundColor: '#fff3cd', 
               padding: '15px', 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Category, Widget, useCategories, useCategoryWidgets } from './client-logic';
+import { useQuery } from '@apollo/client';
+import { Category, Widget, CategoriesResponse, WidgetsResponse, GET_CATEGORIES, GET_FILTERED_WIDGETS, GET_ALL_WIDGETS } from './client-logic';
 import { WidgetDetail } from './WidgetDetail';
 
 export const Categories: React.FC = () => {
@@ -9,8 +10,15 @@ export const Categories: React.FC = () => {
   const pageSize = 20;
   const offset = (currentPage - 1) * pageSize;
 
-  const { loading: categoriesLoading, error: categoriesError, data: categoriesData } = useCategories();
-  const { loading: widgetsLoading, error: widgetsError, data: widgetsData } = useCategoryWidgets(selectedCategoryId, pageSize, currentPage);
+  const { loading: categoriesLoading, error: categoriesError, data: categoriesData } = useQuery<CategoriesResponse>(GET_CATEGORIES);
+  const { loading: widgetsLoading, error: widgetsError, data: widgetsData } = useQuery<WidgetsResponse>(
+    selectedCategoryId ? GET_FILTERED_WIDGETS : GET_ALL_WIDGETS,
+    {
+      variables: selectedCategoryId 
+        ? { categoryId: selectedCategoryId, limit: pageSize, offset }
+        : { limit: pageSize, offset },
+    }
+  );
 
   if (categoriesLoading || widgetsLoading) return <p>Loading...</p>;
   if (categoriesError) return <p>Error loading categories: {categoriesError.message}</p>;

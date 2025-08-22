@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Category, Widget, useBudgetCategories, useBudgetWidgets } from './client-logic';
+import { useQuery } from '@apollo/client';
+import { Category, Widget, CategoriesResponse, WidgetsResponse, GET_BUDGET_CATEGORIES, GET_BUDGET_WIDGETS, GET_ALL_BUDGET_WIDGETS } from './client-logic';
 import { WidgetDetail } from './WidgetDetail';
 
 export const Budget: React.FC = () => {
@@ -12,10 +13,19 @@ export const Budget: React.FC = () => {
   const offset = (currentPage - 1) * pageSize;
 
   // Get categories that have widgets within budget
-  const { loading: categoriesLoading, data: categoriesData } = useBudgetCategories(minBudget, maxBudget);
+  const { loading: categoriesLoading, data: categoriesData } = useQuery<CategoriesResponse>(GET_BUDGET_CATEGORIES, {
+    variables: { minPrice: minBudget, maxPrice: maxBudget },
+  });
 
   // Get widgets within budget (with optional category filter)
-  const { loading: widgetsLoading, data: widgetsData } = useBudgetWidgets(minBudget, maxBudget, selectedCategoryId, pageSize, currentPage);
+  const { loading: widgetsLoading, data: widgetsData } = useQuery<WidgetsResponse>(
+    selectedCategoryId ? GET_BUDGET_WIDGETS : GET_ALL_BUDGET_WIDGETS,
+    {
+      variables: selectedCategoryId 
+        ? { minPrice: minBudget, maxPrice: maxBudget, categoryId: selectedCategoryId, limit: pageSize, offset }
+        : { minPrice: minBudget, maxPrice: maxBudget, limit: pageSize, offset },
+    }
+  );
 
   const selectedCategory = selectedCategoryId 
     ? categoriesData?.categories.find((c: Category) => c.id === selectedCategoryId)
@@ -45,7 +55,7 @@ export const Budget: React.FC = () => {
 
   const budgetRange = maxBudget - minBudget;
   const totalBudgetCategories = categoriesData?.categories.length || 0;
-  const totalBudgetWidgets = categoriesData?.categories.reduce((sum, cat) => sum + cat.widgets_aggregate.aggregate.count, 0) || 0;
+  const totalBudgetWidgets = categoriesData?.categories.reduce((sum: number, cat: Category) => sum + cat.widgets_aggregate.aggregate.count, 0) || 0;
 
   return (
     <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
