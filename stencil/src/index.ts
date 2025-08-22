@@ -6,13 +6,7 @@
 // Set development mode for Apollo DevTools BEFORE any imports
 (globalThis as any).__DEV__ = true;
 
-import {
-  ApolloClient,
-  InMemoryCache,
-  gql,
-  DocumentNode,
-  ApolloQueryResult,
-} from "@apollo/client";
+import { ApolloClient, InMemoryCache, gql, DocumentNode } from "@apollo/client";
 import { HttpLink } from "@apollo/client/link/http";
 import { SetContextLink } from "@apollo/client/link/context";
 
