@@ -1,0 +1,108 @@
+scalar DateTime
+
+type Users_BT {
+  Name: String
+  Email: String
+  Photo: String
+  Role: String
+  Items: [Items_BT] # Reference to native-table-55cc38c0-5e52-4aa1-8db9-32230eef71eb.YAoLR
+  Widgets: [Widgets] # Reference to native-table-4b3f4feb-3fb3-4378-8125-01476686a52e.zcxIG
+  Sales_Total: Float
+}
+
+type Items_BT {
+  Name: String
+  Description: String
+  Image: String
+  Category: String
+  User_email: String
+  Added_On: DateTime
+  Greeting: String
+  User: String # Reference to native-table-b76f7d42-18ba-46d6-936e-269cc196dae9.P1Me3
+}
+
+type Widgets {
+  Name: String
+  Description: String
+  Price: Float
+  Image: String
+  ReleaseDate: DateTime
+  Developer: String
+  Version: String
+  DescriptionExtended: String
+  Status: Boolean
+  Sales_Rep_Email: String
+}
+
+input StringFilterInput {
+  equals: String
+  contains: String
+  startsWith: String
+  endsWith: String
+}
+
+input IntFilterInput {
+  equals: Int
+  gt: Int
+  gte: Int
+  lt: Int
+  lte: Int
+}
+
+input FloatFilterInput {
+  equals: Float
+  gt: Float
+  gte: Float
+  lt: Float
+  lte: Float
+}
+
+input BooleanFilterInput {
+  equals: Boolean
+}
+
+input Users_BTWhereInput {
+  Name: StringFilterInput
+  Email: StringFilterInput
+  Photo: StringFilterInput
+  Role: StringFilterInput
+  Sales_Total: FloatFilterInput
+}
+
+input Items_BTWhereInput {
+  Name: StringFilterInput
+  Description: StringFilterInput
+  Image: StringFilterInput
+  Category: StringFilterInput
+  User_email: StringFilterInput
+  Added_On: StringFilterInput
+  Greeting: StringFilterInput
+}
+
+input WidgetsWhereInput {
+  Name: StringFilterInput
+  Description: StringFilterInput
+  Price: FloatFilterInput
+  Image: StringFilterInput
+  ReleaseDate: StringFilterInput
+  Developer: StringFilterInput
+  Version: StringFilterInput
+  DescriptionExtended: StringFilterInput
+  Status: BooleanFilterInput
+  Sales_Rep_Email: StringFilterInput
+}
+
+type Query {
+  Users_BT(
+    first: Int
+    where: Users_BTWhereInput
+  ): [Users_BT!]!
+  Items_BT(
+    first: Int
+    where: Items_BTWhereInput
+  ): [Items_BT!]!
+  Widgets(
+    first: Int
+    where: WidgetsWhereInput
+  ): [Widgets!]!
+}
