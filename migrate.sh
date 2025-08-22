@@ -66,6 +66,7 @@ cd "$HASURA_DIR"
 echo -e "${YELLOW}🔄 Running Hasura migrations...${NC}"
 HASURA_GRAPHQL_ADMIN_SECRET="$HASURA_GRAPHQL_ADMIN_SECRET" \
     hasura migrate apply \
+    --database-name default \
     --endpoint "$HASURA_ENDPOINT" \
     --admin-secret "$HASURA_GRAPHQL_ADMIN_SECRET"
 
