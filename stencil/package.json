@@ -1,0 +1,20 @@
+{
+  "name": "stencil",
+  "version": "1.0.0",
+  "description": "Simple GraphQL DOM bindings",
+  "main": "server.js",
+  "scripts": {
+    "build": "bun build src/index.ts --outdir app/static --target browser --sourcemap --minify",
+    "build:watch": "bun build src/index.ts --outdir app/static --target browser --sourcemap --watch",
+    "dev": "bun run build && concurrently \"bun run build:watch\" \"bun run server.js\"",
+    "start": "bun run server.js",
+    "build:tsc": "tsc"
+  },
+  "dependencies": {
+    "hono": "^4.9.2"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "typescript": "^5.9.2"
+  }
+}

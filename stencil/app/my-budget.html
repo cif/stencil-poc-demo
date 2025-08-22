@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>My Budget - Stencil</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gradient-to-br from-blue-500 to-purple-600 min-h-screen">
+        <div class="container mx-auto px-4 py-8 pb-20 md:pb-8">
+            <!-- include 'includes/nav.html' -->
+
+            <div class="text-white max-w-4xl mx-auto">
+                <h1 class="text-5xl font-bold text-center mb-8">My Budget</h1>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white/10 backdrop-blur-md rounded-lg p-6">
+                        <h3 class="text-2xl font-semibold mb-4 text-green-300">
+                            Income
+                        </h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span>Salary</span>
+                                <span class="font-medium">$5,000</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Freelance</span>
+                                <span class="font-medium">$1,200</span>
+                            </div>
+                            <div
+                                class="border-t border-white/20 pt-2 flex justify-between font-bold text-lg"
+                            >
+                                <span>Total Income</span>
+                                <span class="text-green-300">$6,200</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-md rounded-lg p-6">
+                        <h3 class="text-2xl font-semibold mb-4 text-red-300">
+                            Expenses
+                        </h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span>Rent</span>
+                                <span class="font-medium">$1,500</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Groceries</span>
+                                <span class="font-medium">$400</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Utilities</span>
+                                <span class="font-medium">$150</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Transportation</span>
+                                <span class="font-medium">$200</span>
+                            </div>
+                            <div
+                                class="border-t border-white/20 pt-2 flex justify-between font-bold text-lg"
+                            >
+                                <span>Total Expenses</span>
+                                <span class="text-red-300">$2,250</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-white/10 backdrop-blur-md rounded-lg p-6 text-center"
+                >
+                    <h3 class="text-2xl font-semibold mb-4">Budget Summary</h3>
+                    <div class="text-4xl font-bold mb-2">
+                        <span class="text-green-300">$3,950</span>
+                    </div>
+                    <p class="text-gray-200">
+                        Available for savings and investments
+                    </p>
+
+                    <div class="mt-6 space-x-4">
+                        <button
+                            class="bg-white text-blue-600 px-6 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                            Add Income
+                        </button>
+                        <button
+                            class="bg-white text-blue-600 px-6 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                            Add Expense
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- include 'includes/scripts.html' -->
+    </body>
+</html>

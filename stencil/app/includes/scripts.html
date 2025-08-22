@@ -1,0 +1,12 @@
+<!-- Stencil TypeScript Bundle -->
+<script type="module" src="/static/index.js"></script>
+
+<!-- Hot reload client -->
+<script>
+    const ws = new WebSocket("ws://localhost:3001/hot-reload");
+    ws.onmessage = (event) => {
+        if (event.data === "reload") {
+            location.reload();
+        }
+    };
+</script>

@@ -8,5 +8,9 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@apollo/client": "^4.0.0",
+    "graphql": "^16.11.0"
+  }
 }

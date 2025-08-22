@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Widgets - Stencil</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gradient-to-br from-blue-500 to-purple-600 min-h-screen">
+        <div class="container mx-auto px-4 py-8 pb-20 md:pb-8">
+            <!-- include 'includes/nav.html' -->
+
+            <div class="text-center text-white">
+                <h1 class="text-5xl font-bold mb-6">Widgets</h1>
+                <p class="text-xl mb-8">Manage your application widgets</p>
+                
+                <!-- GraphQL DOM Binding Examples -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-6xl mx-auto">
+                    <!-- Aggregates Example -->
+                    <div class="bg-white/10 backdrop-blur-md rounded-lg p-6">
+                        <h3 class="text-2xl font-semibold mb-4">📊 Widget Statistics</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span>Average Price:</span>
+                                <span class="font-bold text-green-300">$<span data-gql-field="widgets_aggregate.aggregate.avg.price">--</span></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Total Count:</span>
+                                <span class="font-bold text-blue-300"><span data-gql-field="widgets_aggregate.aggregate.count">--</span></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Max Price:</span>
+                                <span class="font-bold text-yellow-300">$<span data-gql-field="widgets_aggregate.aggregate.max.price">--</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Categories Example -->
+                    <div class="bg-white/10 backdrop-blur-md rounded-lg p-6">
+                        <h3 class="text-2xl font-semibold mb-4">📋 Category Stats</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span>Category Count:</span>
+                                <span class="font-bold text-purple-300"><span data-gql-field="categories_aggregate.aggregate.count">--</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mb-8">
+                    <p class="text-sm text-gray-300">
+                        🔗 Powered by Stencil GraphQL DOM Bindings with Apollo Client<br>
+                        <em>Query built dynamically from DOM attributes!</em>
+                    </p>
+                </div>
+
+                <div
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
+                >
+                    <div
+                        class="bg-white/10 backdrop-blur-md rounded-lg p-6 hover:bg-white/20 transition-all duration-200"
+                    >
+                        <h3 class="text-2xl font-semibold mb-4">
+                            Chart Widget
+                        </h3>
+                        <p class="text-gray-200 mb-4">
+                            Display data visualizations and charts
+                        </p>
+                        <button
+                            class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                            Configure
+                        </button>
+                    </div>
+
+                    <div
+                        class="bg-white/10 backdrop-blur-md rounded-lg p-6 hover:bg-white/20 transition-all duration-200"
+                    >
+                        <h3 class="text-2xl font-semibold mb-4">
+                            Stats Widget
+                        </h3>
+                        <p class="text-gray-200 mb-4">
+                            Show key performance indicators
+                        </p>
+                        <button
+                            class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                            Configure
+                        </button>
+                    </div>
+
+                    <div
+                        class="bg-white/10 backdrop-blur-md rounded-lg p-6 hover:bg-white/20 transition-all duration-200"
+                    >
+                        <h3 class="text-2xl font-semibold mb-4">News Widget</h3>
+                        <p class="text-gray-200 mb-4">
+                            Display latest news and updates
+                        </p>
+                        <button
+                            class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                            Configure
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- include 'includes/scripts.html' -->
+    </body>
+</html>
